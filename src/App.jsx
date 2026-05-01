@@ -5,7 +5,10 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 
 const LandingPage = lazy(() => import('./pages/LandingPage'))
-const QualifierFlow = lazy(() => import('./pages/QualifierFlow'))
+const QualifierFlow = lazy(() => import('./pages/QualifierFlow'))            // Step 1: Has Business
+const QualifierRevenue = lazy(() => import('./pages/QualifierRevenue'))      // Step 2: Revenue
+const QualifierIndustry = lazy(() => import('./pages/QualifierIndustry'))    // Step 3: Industry
+const QualifierState = lazy(() => import('./pages/QualifierState'))          // Step 4: State
 const AnalyzingScreen = lazy(() => import('./pages/AnalyzingScreen'))
 const YourPlan = lazy(() => import('./pages/YourPlan'))
 const Checkout = lazy(() => import('./pages/Checkout'))
@@ -57,7 +60,13 @@ export default function App() {
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<PageWrap><LandingPage /></PageWrap>} />
+
+            {/* Qualifier — each step has its own URL */}
             <Route path="/get-started" element={<PageWrap><QualifierFlow /></PageWrap>} />
+            <Route path="/get-started/revenue" element={<PageWrap><QualifierRevenue /></PageWrap>} />
+            <Route path="/get-started/industry" element={<PageWrap><QualifierIndustry /></PageWrap>} />
+            <Route path="/get-started/state" element={<PageWrap><QualifierState /></PageWrap>} />
+
             <Route path="/analyzing" element={<PageWrap><AnalyzingScreen /></PageWrap>} />
             <Route path="/your-plan" element={<PageWrap><YourPlan /></PageWrap>} />
 

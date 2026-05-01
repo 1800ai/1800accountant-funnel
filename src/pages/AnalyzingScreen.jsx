@@ -5,20 +5,12 @@ import { Check } from 'lucide-react'
 import { useFunnel } from '../context/FunnelContext'
 import { US_STATES } from '../utils/states'
 import { INDUSTRIES } from '../utils/industries'
-import { isUnderFiftyK } from '../utils/recommendations'
 
-const stepsUnder = (state, industry) => [
+const steps = (state, industry) => [
   { text: 'Analyzing your tax profile...', dur: 3000 },
   { text: `Searching ${state} tax regulations...`, dur: 4000 },
   { text: `Identifying deductions for ${industry}...`, dur: 4000 },
   { text: 'Building your personalized plan...', dur: 4000 },
-]
-
-const stepsOver = (state, industry) => [
-  { text: 'Analyzing your tax profile...', dur: 3000 },
-  { text: `Researching ${state} tax strategy options...`, dur: 4000 },
-  { text: `Mapping deduction opportunities for ${industry}...`, dur: 4000 },
-  { text: 'Matching you with a senior tax specialist...', dur: 4000 },
 ]
 
 export default function AnalyzingScreen() {
@@ -31,9 +23,7 @@ export default function AnalyzingScreen() {
     ? (data.otherIndustry || 'your industry')
     : (INDUSTRIES.find((i) => i.id === data.industry)?.label || data.industry || 'your industry')
 
-  const under = isUnderFiftyK(data.revenue)
-  const sequence = under ? stepsUnder(stateName, industryName) : stepsOver(stateName, industryName)
-  const destination = under ? '/your-plan' : '/schedule'
+  const sequence = steps(stateName, industryName)
 
   useEffect(() => {
     let elapsed = 0
@@ -42,7 +32,7 @@ export default function AnalyzingScreen() {
       if (i < sequence.length - 1) {
         return setTimeout(() => setActive(i + 1), elapsed)
       }
-      return setTimeout(() => nav(destination), elapsed)
+      return setTimeout(() => nav('/your-plan'), elapsed)
     })
     return () => timers.forEach(clearTimeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps

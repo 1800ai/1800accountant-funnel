@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CalendarClock } from 'lucide-react'
@@ -9,8 +8,7 @@ import { US_STATES } from '../utils/states'
 import PricingCard from '../components/PricingCard'
 import TrustBadges from '../components/TrustBadges'
 
-// Under-$50K plans only — over-$50K users go straight to /schedule.
-// Free Entity Formation appears if no business.
+// Under-$50K plans (DIY + DIWM). Free Entity Formation badge if no business.
 const UNDER_PLANS = [
   {
     id: 'basic', name: 'Do-It-Yourself', price: 19, annualPrice: '228',
@@ -21,6 +19,39 @@ const UNDER_PLANS = [
     id: 'pro', name: 'Do-It-With-Me', price: 29, annualPrice: '348', badge: 'MOST POPULAR', popular: true,
     features: ['Free AI Business Tax Return', 'AI Bookkeeping', 'Complimentary Business Tax Extension', 'Unlimited 1099 Issuing and Filings', 'Personal Tax Preparation', 'Quarterly Estimated Tax Compliance', 'CPA Review of Taxes', 'Payroll Setup', 'Tax Hotline'],
     ctaText: 'Get Started — $29/mo',
+  },
+]
+
+// Over-$50K plans (Core Accounting + Business Complete)
+const OVER_PLANS = [
+  {
+    id: 'core', name: 'Core Accounting', price: 249, annualPrice: '2,988', badge: 'BEST VALUE',
+    subtitle: 'Done-for-you taxes & advisory for established businesses',
+    features: [
+      'Done-for-you Business Tax Preparation',
+      'Done-for-you Personal Tax Preparation',
+      'Year-Round Tax Advisory',
+      'Dedicated Accountant',
+      'Quarterly Estimated Tax Compliance',
+      'Audit Defense',
+      'AI Bookkeeping',
+      'Unlimited 1099 Filings',
+    ],
+    ctaText: 'Schedule Free Consultation',
+  },
+  {
+    id: 'complete', name: 'Business Complete', price: 399, annualPrice: '4,788', badge: 'MOST POPULAR', popular: true, premium: true,
+    subtitle: 'Core Accounting + Bookkeeping + Payroll — your complete back-office',
+    features: [
+      'Everything in Core Accounting',
+      'Full-Service Bookkeeping (monthly close)',
+      'Payroll Setup & Management',
+      'Monthly Financial Reports',
+      'Proactive Tax Strategy & Planning',
+      'Quarterly Reviews with your CPA',
+      'Priority Support',
+    ],
+    ctaText: 'Schedule Free Consultation',
   },
 ]
 
@@ -37,27 +68,28 @@ export default function YourPlan() {
   const stateName = US_STATES.find((s) => s.abbr === data.state)?.name || data.state || 'your state'
   const hasBusiness = data.hasExistingBusiness
 
-  // Defensive redirect: anyone over-$50K who lands here goes straight to scheduling
-  useEffect(() => {
-    if (data.revenue && !under) nav('/schedule', { replace: true })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const plans = UNDER_PLANS.map((p) =>
-    hasBusiness === false ? {
-      ...p,
-      name: `${p.name} + Free Entity Formation`,
-      bonusFeatures: ['FREE Business Entity Formation', 'FREE EIN Filing'],
-      legalZoom: true,
-    } : p
-  )
+  const plans = under
+    ? UNDER_PLANS.map((p) => (hasBusiness === false ? {
+        ...p,
+        name: `${p.name} + Free Entity Formation`,
+        bonusFeatures: ['FREE Business Entity Formation', 'FREE EIN Filing'],
+        legalZoom: true,
+      } : p))
+    : OVER_PLANS
 
   const handleSelect = (planId) => {
     update({ selectedPlan: planId })
-    if (hasBusiness) {
-      nav('/tax-savings')
+
+    if (under) {
+      // Under-$50k branching by business status
+      if (hasBusiness) {
+        nav('/tax-savings')
+      } else {
+        nav('/entity-type')
+      }
     } else {
-      nav('/entity-type')
+      // Over-$50k → schedule consultation → lead form → confirmation
+      nav('/schedule')
     }
   }
 

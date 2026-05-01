@@ -118,81 +118,30 @@ function StateSelect({ value, onChange }) {
   )
 }
 
-function FloatingInput({ label, type = 'text', value, onChange, error, validate }) {
-  const [focused, setFocused] = useState(false)
-  const active = focused || value
-  const valid = validate ? validate(value) : value.length > 0
-  const showCheck = value && valid && !error
-
-  return (
-    <div className="relative">
-      <label className={`absolute left-4 transition-all duration-200 pointer-events-none
-        ${active ? 'top-1.5 text-[10px] font-medium text-[#F7941D]' : 'top-4 text-sm text-gray-400'}
-      `}>{label}</label>
-      <input type={type} value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        className={`w-full rounded-xl border-2 p-4 pt-5 text-sm outline-none transition-all font-body
-          ${error ? 'border-red-400 ring-2 ring-red-400/20' : focused ? 'border-[#F7941D] ring-2 ring-[#F7941D]/20' : 'border-gray-200'}
-        `} />
-      {showCheck && (
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#10B981] rounded-full flex items-center justify-center">
-          <Check size={12} className="text-white" />
-        </motion.div>
-      )}
-      {error && <p className="text-red-500 text-xs mt-1 ml-1">{error}</p>}
-    </div>
-  )
-}
-
 export default function QualifierFlow() {
   const { data, update } = useFunnel()
   const nav = useNavigate()
   const [step, setStep] = useState(1)
   const [subStep, setSubStep] = useState(0) // for step 2 sequential reveal
-  const [otherIndustry, setOtherIndustry] = useState('')
-  const [errors, setErrors] = useState({})
-  const [phone, setPhone] = useState(data.phone || '')
 
   // Step 2 sequential: 0=revenue, 1=industry, 2=state
   const revDone = !!data.revenue
-  const indDone = !!data.industry
+  const indDone = !!data.industry && (data.industry !== 'other' || !!data.otherIndustry?.trim())
   const stateDone = !!data.state
 
   useEffect(() => {
     if (revDone && subStep < 1) setSubStep(1)
-    if (indDone && subStep < 2) setSubStep(2)
-  }, [revDone, indDone])
-
-  const formatPhone = (val) => {
-    const nums = val.replace(/\D/g, '').slice(0, 10)
-    if (nums.length <= 3) return nums
-    if (nums.length <= 6) return `(${nums.slice(0, 3)}) ${nums.slice(3)}`
-    return `(${nums.slice(0, 3)}) ${nums.slice(3, 6)}-${nums.slice(6)}`
-  }
-
-  const handlePhoneChange = (val) => {
-    const formatted = formatPhone(val)
-    setPhone(formatted)
-    update({ phone: formatted })
-  }
-
-  const validateEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
-  const validatePhone = (p) => p.replace(/\D/g, '').length === 10
+    if (data.industry && data.industry !== 'other' && subStep < 2) setSubStep(2)
+    if (data.industry === 'other' && data.otherIndustry?.trim() && subStep < 2) setSubStep(2)
+  }, [revDone, data.industry, data.otherIndustry])
 
   const handleStep1 = (val) => {
     update({ hasExistingBusiness: val })
     setTimeout(() => setStep(2), 500)
   }
 
-  const handleSubmit = () => {
-    const errs = {}
-    if (!data.fullName.trim()) errs.fullName = 'Required'
-    if (!validateEmail(data.email)) errs.email = 'Enter a valid email'
-    if (!validatePhone(phone)) errs.phone = 'Enter a 10-digit phone number'
-    setErrors(errs)
-    if (Object.keys(errs).length === 0) nav('/analyzing')
+  const handleContinue = () => {
+    nav('/analyzing')
   }
 
   return (
@@ -220,7 +169,7 @@ export default function QualifierFlow() {
             </motion.div>
           )}
 
-          {/* Step 2: Business Details */}
+          {/* Step 2: Business Details (revenue, industry, state) */}
           {step === 2 && (
             <motion.div key="step2" {...slide} className="mt-10 space-y-10">
               <h2 className="text-2xl lg:text-3xl font-bold font-heading text-center text-gray-900 mb-2">
@@ -254,7 +203,7 @@ export default function QualifierFlow() {
                           <motion.button key={ind.id} whileTap={{ scale: 0.97 }}
                             onClick={() => {
                               update({ industry: ind.id })
-                              if (ind.id !== 'other') setOtherIndustry('')
+                              if (ind.id !== 'other') update({ otherIndustry: '' })
                             }}
                             className={`p-4 rounded-xl border-2 text-center cursor-pointer transition-all flex flex-col items-center gap-2
                               ${sel ? 'border-[#F7941D] bg-[#F7941D]/5' : 'border-gray-200 hover:border-[#F7941D]'}
@@ -269,8 +218,8 @@ export default function QualifierFlow() {
                       {data.industry === 'other' && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
                           className="mt-3">
-                          <input type="text" placeholder="Enter your industry..." value={otherIndustry}
-                            onChange={(e) => setOtherIndustry(e.target.value)}
+                          <input type="text" placeholder="Enter your industry..." value={data.otherIndustry || ''}
+                            onChange={(e) => update({ otherIndustry: e.target.value })}
                             className="w-full rounded-xl border-2 border-gray-200 focus:border-[#F7941D] focus:ring-2 focus:ring-[#F7941D]/20 p-4 text-sm outline-none transition-all" />
                         </motion.div>
                       )}
@@ -289,53 +238,21 @@ export default function QualifierFlow() {
                 )}
               </AnimatePresence>
 
-              {/* Continue */}
+              {/* Continue → analyzing → your-plan */}
               <AnimatePresence>
                 {revDone && indDone && stateDone && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pt-4">
                     <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                      onClick={() => setStep(3)}
+                      onClick={handleContinue}
                       className="w-full bg-[#F7941D] hover:bg-[#e07e0a] text-white font-semibold py-4 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2">
-                      Continue <ChevronRight size={18} />
+                      See My Personalized Plan <ChevronRight size={18} />
                     </motion.button>
+                    <p className="text-xs text-gray-400 text-center mt-3 font-body">
+                      No email or phone required to see your plan.
+                    </p>
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.div>
-          )}
-
-          {/* Step 3: Contact Info */}
-          {step === 3 && (
-            <motion.div key="step3" {...slide} className="mt-10">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl lg:text-3xl font-bold font-heading text-gray-900 mb-2">
-                  Almost there — tell us about you
-                </h2>
-                <p className="text-gray-500 font-body">We'll use this to set up your account.</p>
-              </div>
-              <div className="space-y-5">
-                <FloatingInput
-                  label={data.hasExistingBusiness ? 'Company Name' : 'Planned Business Name (optional)'}
-                  value={data.companyName}
-                  onChange={(v) => update({ companyName: v })} />
-                <FloatingInput label="Full Name" value={data.fullName}
-                  onChange={(v) => { update({ fullName: v }); setErrors((e) => ({ ...e, fullName: undefined })) }}
-                  error={errors.fullName} />
-                <FloatingInput label="Email Address" type="email" value={data.email}
-                  onChange={(v) => { update({ email: v }); setErrors((e) => ({ ...e, email: undefined })) }}
-                  error={errors.email} validate={validateEmail} />
-                <FloatingInput label="Phone Number" type="tel" value={phone}
-                  onChange={(v) => { handlePhoneChange(v); setErrors((e) => ({ ...e, phone: undefined })) }}
-                  error={errors.phone} validate={validatePhone} />
-              </div>
-              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                onClick={handleSubmit}
-                className="w-full mt-8 bg-[#F7941D] hover:bg-[#e07e0a] text-white font-semibold py-4 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2">
-                See My Personalized Plan <ChevronRight size={18} />
-              </motion.button>
-              <p className="text-xs text-gray-400 text-center mt-4 font-body">
-                By continuing, you agree to our <a href="#" className="underline">Terms of Service</a> and <a href="#" className="underline">Privacy Policy</a>
-              </p>
             </motion.div>
           )}
         </AnimatePresence>

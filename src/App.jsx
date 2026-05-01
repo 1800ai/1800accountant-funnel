@@ -10,7 +10,12 @@ const AnalyzingScreen = lazy(() => import('./pages/AnalyzingScreen'))
 const YourPlan = lazy(() => import('./pages/YourPlan'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const ScheduleConsultation = lazy(() => import('./pages/ScheduleConsultation'))
+const LeadForm = lazy(() => import('./pages/LeadForm'))
 const Confirmation = lazy(() => import('./pages/Confirmation'))
+const TaxSavings = lazy(() => import('./pages/TaxSavings'))
+const EntityType = lazy(() => import('./pages/EntityType'))
+const CompanyInfo = lazy(() => import('./pages/CompanyInfo'))
+const Members = lazy(() => import('./pages/Members'))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -54,8 +59,23 @@ export default function App() {
             <Route path="/get-started" element={<PageWrap><QualifierFlow /></PageWrap>} />
             <Route path="/analyzing" element={<PageWrap><AnalyzingScreen /></PageWrap>} />
             <Route path="/your-plan" element={<PageWrap><YourPlan /></PageWrap>} />
+
+            {/* Under-$50k + has-business path */}
+            <Route path="/tax-savings" element={<PageWrap><TaxSavings /></PageWrap>} />
+
+            {/* Under-$50k + no-business (entity formation) path */}
+            <Route path="/entity-type" element={<PageWrap><EntityType /></PageWrap>} />
+            <Route path="/company-info" element={<PageWrap><CompanyInfo /></PageWrap>} />
+            <Route path="/members" element={<PageWrap><Members /></PageWrap>} />
+
+            {/* Shared checkout (handles both under-$50k paths) */}
             <Route path="/checkout" element={<PageWrap><Checkout /></PageWrap>} />
+
+            {/* Over-$50k consultation path */}
             <Route path="/schedule" element={<PageWrap><ScheduleConsultation /></PageWrap>} />
+            <Route path="/lead-form" element={<PageWrap><LeadForm /></PageWrap>} />
+
+            {/* Final */}
             <Route path="/welcome" element={<PageWrap><Confirmation /></PageWrap>} />
           </Routes>
         </AnimatePresence>

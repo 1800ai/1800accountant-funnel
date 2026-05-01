@@ -4,17 +4,32 @@ const FunnelContext = createContext()
 
 export function FunnelProvider({ children }) {
   const [data, setData] = useState({
+    // Qualifier
     hasExistingBusiness: null,
     revenue: null,
     industry: null,
+    otherIndustry: '',
     state: null,
+
+    // Contact (collected at different points based on path)
     companyName: '',
     fullName: '',
     email: '',
     phone: '',
+
+    // Plan + scheduling
     selectedPlan: null,
     selectedDate: null,
     selectedTime: null,
+
+    // Entity formation (under-50k + no business path)
+    entityType: null,
+    businessAddress: '',
+    businessPurpose: '',
+    members: [],
+
+    // Tax savings reveal (under-50k + has business path)
+    taxSavingsEstimate: null,
   })
 
   const update = (fields) => setData((p) => ({ ...p, ...fields }))

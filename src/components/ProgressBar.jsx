@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 
-const labels = ['Business', 'Details', 'Contact']
+const labels = ['Business', 'Details']
 
 export default function ProgressBar({ step }) {
   return (

@@ -9,7 +9,7 @@ export default function ScheduleConsultation() {
   const nav = useNavigate()
 
   const handleConfirm = () => {
-    nav('/welcome')
+    nav('/lead-form')
   }
 
   return (

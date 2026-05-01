@@ -12,6 +12,7 @@ const Checkout = lazy(() => import('./pages/Checkout'))
 const ScheduleConsultation = lazy(() => import('./pages/ScheduleConsultation'))
 const LeadForm = lazy(() => import('./pages/LeadForm'))
 const Confirmation = lazy(() => import('./pages/Confirmation'))
+const ConsultationConfirmation = lazy(() => import('./pages/ConsultationConfirmation'))
 const TaxSavings = lazy(() => import('./pages/TaxSavings'))
 const EntityType = lazy(() => import('./pages/EntityType'))
 const CompanyInfo = lazy(() => import('./pages/CompanyInfo'))
@@ -68,14 +69,15 @@ export default function App() {
             <Route path="/company-info" element={<PageWrap><CompanyInfo /></PageWrap>} />
             <Route path="/members" element={<PageWrap><Members /></PageWrap>} />
 
-            {/* Shared checkout (handles both under-$50k paths) */}
+            {/* Shared subscription checkout */}
             <Route path="/checkout" element={<PageWrap><Checkout /></PageWrap>} />
 
-            {/* Over-$50k consultation path */}
+            {/* Consultation path (over-$50k direct + "Not sure" CTA) */}
             <Route path="/schedule" element={<PageWrap><ScheduleConsultation /></PageWrap>} />
             <Route path="/lead-form" element={<PageWrap><LeadForm /></PageWrap>} />
+            <Route path="/consultation-booked" element={<PageWrap><ConsultationConfirmation /></PageWrap>} />
 
-            {/* Final */}
+            {/* Subscription confirmation */}
             <Route path="/welcome" element={<PageWrap><Confirmation /></PageWrap>} />
           </Routes>
         </AnimatePresence>

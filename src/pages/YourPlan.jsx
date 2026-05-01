@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CalendarClock } from 'lucide-react'
@@ -8,7 +9,8 @@ import { US_STATES } from '../utils/states'
 import PricingCard from '../components/PricingCard'
 import TrustBadges from '../components/TrustBadges'
 
-// Under-$50K plans (DIY + DIWM). Free Entity Formation badge appears if no business.
+// Under-$50K plans only — over-$50K users go straight to /schedule.
+// Free Entity Formation appears if no business.
 const UNDER_PLANS = [
   {
     id: 'basic', name: 'Do-It-Yourself', price: 19, annualPrice: '228',
@@ -19,39 +21,6 @@ const UNDER_PLANS = [
     id: 'pro', name: 'Do-It-With-Me', price: 29, annualPrice: '348', badge: 'MOST POPULAR', popular: true,
     features: ['Free AI Business Tax Return', 'AI Bookkeeping', 'Complimentary Business Tax Extension', 'Unlimited 1099 Issuing and Filings', 'Personal Tax Preparation', 'Quarterly Estimated Tax Compliance', 'CPA Review of Taxes', 'Payroll Setup', 'Tax Hotline'],
     ctaText: 'Get Started — $29/mo',
-  },
-]
-
-// Over-$50K plans (Core Accounting + Business Complete)
-const OVER_PLANS = [
-  {
-    id: 'core', name: 'Core Accounting', price: 249, annualPrice: '2,988', badge: 'BEST VALUE',
-    subtitle: 'Done-for-you taxes & advisory for established businesses',
-    features: [
-      'Done-for-you Business Tax Preparation',
-      'Done-for-you Personal Tax Preparation',
-      'Year-Round Tax Advisory',
-      'Dedicated Accountant',
-      'Quarterly Estimated Tax Compliance',
-      'Audit Defense',
-      'AI Bookkeeping',
-      'Unlimited 1099 Filings',
-    ],
-    ctaText: 'Schedule Free Consultation',
-  },
-  {
-    id: 'complete', name: 'Business Complete', price: 399, annualPrice: '4,788', badge: 'MOST POPULAR', popular: true, premium: true,
-    subtitle: 'Core Accounting + Bookkeeping + Payroll — your complete back-office',
-    features: [
-      'Everything in Core Accounting',
-      'Full-Service Bookkeeping (monthly close)',
-      'Payroll Setup & Management',
-      'Monthly Financial Reports',
-      'Proactive Tax Strategy & Planning',
-      'Quarterly Reviews with your CPA',
-      'Priority Support',
-    ],
-    ctaText: 'Schedule Free Consultation',
   },
 ]
 
@@ -68,33 +37,27 @@ export default function YourPlan() {
   const stateName = US_STATES.find((s) => s.abbr === data.state)?.name || data.state || 'your state'
   const hasBusiness = data.hasExistingBusiness
 
-  // Plans to show, with conditional Free Entity Formation badge for under-50k + no business
-  const plans = under
-    ? UNDER_PLANS.map((p) => ({
-        ...p,
-        ...(hasBusiness === false ? {
-          name: `${p.name} + Free Entity Formation`,
-          bonusFeatures: ['FREE Business Entity Formation', 'FREE EIN Filing'],
-          legalZoom: true,
-        } : {}),
-      }))
-    : OVER_PLANS
+  // Defensive redirect: anyone over-$50K who lands here goes straight to scheduling
+  useEffect(() => {
+    if (data.revenue && !under) nav('/schedule', { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const plans = UNDER_PLANS.map((p) =>
+    hasBusiness === false ? {
+      ...p,
+      name: `${p.name} + Free Entity Formation`,
+      bonusFeatures: ['FREE Business Entity Formation', 'FREE EIN Filing'],
+      legalZoom: true,
+    } : p
+  )
 
   const handleSelect = (planId) => {
     update({ selectedPlan: planId })
-
-    if (under) {
-      // Under-$50k branching by business status
-      if (hasBusiness) {
-        // Has business → tax savings reveal → checkout
-        nav('/tax-savings')
-      } else {
-        // No business → entity formation flow → checkout
-        nav('/entity-type')
-      }
+    if (hasBusiness) {
+      nav('/tax-savings')
     } else {
-      // Over-$50k → schedule consultation → lead form → confirmation
-      nav('/schedule')
+      nav('/entity-type')
     }
   }
 
@@ -106,7 +69,6 @@ export default function YourPlan() {
   return (
     <div className="min-h-screen bg-[#F9FAFB] pt-28 pb-20">
       <div className="max-w-7xl mx-auto px-6">
-        {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="text-center mb-14">
           <h1 className="text-3xl lg:text-4xl font-extrabold font-heading text-gray-900 mb-3">
@@ -119,7 +81,6 @@ export default function YourPlan() {
           </p>
         </motion.div>
 
-        {/* Plan grid (2 plans + "Not sure" card) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {plans.map((plan, i) => (
             <PricingCard key={plan.id} {...plan}
@@ -128,7 +89,6 @@ export default function YourPlan() {
               onSelect={() => handleSelect(plan.id)} />
           ))}
 
-          {/* "Not sure?" CTA card */}
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
             whileHover={{ y: -4 }}
@@ -149,7 +109,6 @@ export default function YourPlan() {
           </motion.div>
         </div>
 
-        {/* Trust */}
         <div className="mt-20">
           <p className="text-center text-gray-500 font-medium font-heading mb-8">Join 50,000+ small business owners</p>
           <TrustBadges />

@@ -53,7 +53,7 @@ export default function LeadForm() {
     if (!validateEmail(data.email || '')) errs.email = 'Enter a valid email'
     if (!validatePhone(data.phone || '')) errs.phone = 'Enter a 10-digit phone number'
     setErrors(errs)
-    if (Object.keys(errs).length === 0) nav('/welcome')
+    if (Object.keys(errs).length === 0) nav('/consultation-booked')
   }
 
   return (

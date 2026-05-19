@@ -11,7 +11,7 @@ export default function QualifierRevenue() {
 
   const select = (val) => {
     update({ revenue: val })
-    setTimeout(() => nav('/get-started/industry'), 400)
+    setTimeout(() => nav('/get-started/details'), 400)
   }
 
   return (

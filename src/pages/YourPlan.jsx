@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CalendarClock } from 'lucide-react'
@@ -8,8 +9,11 @@ import { US_STATES } from '../utils/states'
 import PricingCard from '../components/PricingCard'
 import TrustBadges from '../components/TrustBadges'
 
-// Under-$50K plans (DIY + DIWM). Free Entity Formation badge if no business.
-const UNDER_PLANS = [
+// Only DIY + DIWM are shown here. Has-business + over-$50K never lands on this page
+// (they skip straight to /schedule from AnalyzingScreen).
+// No-business users always see these regardless of projected revenue, with a Free
+// Entity Formation badge.
+const PLANS = [
   {
     id: 'basic', name: 'Do-It-Yourself', price: 19, annualPrice: '228',
     features: ['Free AI Business Tax Return', 'AI Bookkeeping', 'Complimentary Business Tax Extension', 'Unlimited 1099 Issuing and Filings'],
@@ -22,43 +26,11 @@ const UNDER_PLANS = [
   },
 ]
 
-// Over-$50K plans (Core Accounting + Business Complete)
-const OVER_PLANS = [
-  {
-    id: 'core', name: 'Core Accounting', price: 249, annualPrice: '2,988', badge: 'BEST VALUE',
-    subtitle: 'Done-for-you taxes & advisory for established businesses',
-    features: [
-      'Done-for-you Business Tax Preparation',
-      'Done-for-you Personal Tax Preparation',
-      'Year-Round Tax Advisory',
-      'Dedicated Accountant',
-      'Quarterly Estimated Tax Compliance',
-      'Audit Defense',
-      'AI Bookkeeping',
-      'Unlimited 1099 Filings',
-    ],
-    ctaText: 'Schedule Free Consultation',
-  },
-  {
-    id: 'complete', name: 'Business Complete', price: 399, annualPrice: '4,788', badge: 'MOST POPULAR', popular: true, premium: true,
-    subtitle: 'Core Accounting + Bookkeeping + Payroll — your complete back-office',
-    features: [
-      'Everything in Core Accounting',
-      'Full-Service Bookkeeping (monthly close)',
-      'Payroll Setup & Management',
-      'Monthly Financial Reports',
-      'Proactive Tax Strategy & Planning',
-      'Quarterly Reviews with your CPA',
-      'Priority Support',
-    ],
-    ctaText: 'Schedule Free Consultation',
-  },
-]
-
 export default function YourPlan() {
   const { data, update } = useFunnel()
   const nav = useNavigate()
 
+  const hasBusiness = data.hasExistingBusiness
   const under = isUnderFiftyK(data.revenue)
   const rec = getRecommendedPlan(data.revenue)
   const revLabel = getRevenueLabel(data.revenue)
@@ -66,30 +38,30 @@ export default function YourPlan() {
     ? (data.otherIndustry || 'your')
     : (INDUSTRIES.find((i) => i.id === data.industry)?.label || 'your')
   const stateName = US_STATES.find((s) => s.abbr === data.state)?.name || data.state || 'your state'
-  const hasBusiness = data.hasExistingBusiness
 
-  const plans = under
-    ? UNDER_PLANS.map((p) => (hasBusiness === false ? {
-        ...p,
-        name: `${p.name} + Free Entity Formation`,
-        bonusFeatures: ['FREE Business Entity Formation', 'FREE EIN Filing'],
-        legalZoom: true,
-      } : p))
-    : OVER_PLANS
+  // Defensive: if has-business + over-$50K somehow lands here, send them to /schedule
+  useEffect(() => {
+    if (hasBusiness === true && data.revenue && !under) {
+      nav('/schedule', { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const plans = PLANS.map((p) => hasBusiness === false ? {
+    ...p,
+    name: `${p.name} + Free Entity Formation`,
+    bonusFeatures: ['FREE Business Entity Formation', 'FREE EIN Filing'],
+    legalZoom: true,
+  } : p)
 
   const handleSelect = (planId) => {
     update({ selectedPlan: planId })
-
-    if (under) {
-      // Under-$50k branching by business status
-      if (hasBusiness) {
-        nav('/tax-savings')
-      } else {
-        nav('/entity-type')
-      }
+    if (hasBusiness) {
+      // Under-$50k + has business → tax savings reveal → checkout
+      nav('/tax-savings')
     } else {
-      // Over-$50k → schedule consultation → lead form → confirmation
-      nav('/schedule')
+      // No business → entity formation flow → checkout
+      nav('/entity-type')
     }
   }
 

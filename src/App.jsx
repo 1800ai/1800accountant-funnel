@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -7,8 +7,7 @@ import Footer from './components/Footer'
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const QualifierFlow = lazy(() => import('./pages/QualifierFlow'))            // Step 1: Has Business
 const QualifierRevenue = lazy(() => import('./pages/QualifierRevenue'))      // Step 2: Revenue
-const QualifierIndustry = lazy(() => import('./pages/QualifierIndustry'))    // Step 3: Industry
-const QualifierState = lazy(() => import('./pages/QualifierState'))          // Step 4: State
+const QualifierDetails = lazy(() => import('./pages/QualifierDetails'))      // Step 3: Industry + State (combined)
 const AnalyzingScreen = lazy(() => import('./pages/AnalyzingScreen'))
 const YourPlan = lazy(() => import('./pages/YourPlan'))
 const Checkout = lazy(() => import('./pages/Checkout'))
@@ -61,11 +60,14 @@ export default function App() {
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<PageWrap><LandingPage /></PageWrap>} />
 
-            {/* Qualifier — each step has its own URL */}
+            {/* Qualifier (3 steps) */}
             <Route path="/get-started" element={<PageWrap><QualifierFlow /></PageWrap>} />
             <Route path="/get-started/revenue" element={<PageWrap><QualifierRevenue /></PageWrap>} />
-            <Route path="/get-started/industry" element={<PageWrap><QualifierIndustry /></PageWrap>} />
-            <Route path="/get-started/state" element={<PageWrap><QualifierState /></PageWrap>} />
+            <Route path="/get-started/details" element={<PageWrap><QualifierDetails /></PageWrap>} />
+
+            {/* Legacy redirects from when industry + state were separate pages */}
+            <Route path="/get-started/industry" element={<Navigate to="/get-started/details" replace />} />
+            <Route path="/get-started/state" element={<Navigate to="/get-started/details" replace />} />
 
             <Route path="/analyzing" element={<PageWrap><AnalyzingScreen /></PageWrap>} />
             <Route path="/your-plan" element={<PageWrap><YourPlan /></PageWrap>} />
@@ -73,7 +75,7 @@ export default function App() {
             {/* Under-$50k + has-business path */}
             <Route path="/tax-savings" element={<PageWrap><TaxSavings /></PageWrap>} />
 
-            {/* Under-$50k + no-business (entity formation) path */}
+            {/* No-business (entity formation) path */}
             <Route path="/entity-type" element={<PageWrap><EntityType /></PageWrap>} />
             <Route path="/company-info" element={<PageWrap><CompanyInfo /></PageWrap>} />
             <Route path="/members" element={<PageWrap><Members /></PageWrap>} />
@@ -81,7 +83,7 @@ export default function App() {
             {/* Shared subscription checkout */}
             <Route path="/checkout" element={<PageWrap><Checkout /></PageWrap>} />
 
-            {/* Consultation path (over-$50k direct + "Not sure" CTA) */}
+            {/* Consultation path (over-$50k + has business, plus "Not sure" CTA) */}
             <Route path="/schedule" element={<PageWrap><ScheduleConsultation /></PageWrap>} />
             <Route path="/lead-form" element={<PageWrap><LeadForm /></PageWrap>} />
             <Route path="/consultation-booked" element={<PageWrap><ConsultationConfirmation /></PageWrap>} />

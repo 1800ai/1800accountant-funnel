@@ -5,12 +5,13 @@ import { Check } from 'lucide-react'
 import { useFunnel } from '../context/FunnelContext'
 import { US_STATES } from '../utils/states'
 import { INDUSTRIES } from '../utils/industries'
+import { isUnderFiftyK } from '../utils/recommendations'
 
 const steps = (state, industry) => [
-  { text: 'Analyzing your tax profile...', dur: 3000 },
-  { text: `Searching ${state} tax regulations...`, dur: 4000 },
-  { text: `Identifying deductions for ${industry}...`, dur: 4000 },
-  { text: 'Building your personalized plan...', dur: 4000 },
+  { text: 'Analyzing your tax profile...', dur: 800 },
+  { text: `Searching ${state} tax regulations...`, dur: 1000 },
+  { text: `Identifying deductions for ${industry}...`, dur: 1100 },
+  { text: 'Building your personalized plan...', dur: 1100 },
 ]
 
 export default function AnalyzingScreen() {
@@ -23,6 +24,10 @@ export default function AnalyzingScreen() {
     ? (data.otherIndustry || 'your industry')
     : (INDUSTRIES.find((i) => i.id === data.industry)?.label || data.industry || 'your industry')
 
+  // Skip plan selection for "Yes, I have a business" + over-$50k → straight to scheduler
+  const skipToSchedule = data.hasExistingBusiness === true && !isUnderFiftyK(data.revenue)
+  const destination = skipToSchedule ? '/schedule' : '/your-plan'
+
   const sequence = steps(stateName, industryName)
 
   useEffect(() => {
@@ -32,7 +37,7 @@ export default function AnalyzingScreen() {
       if (i < sequence.length - 1) {
         return setTimeout(() => setActive(i + 1), elapsed)
       }
-      return setTimeout(() => nav('/your-plan'), elapsed)
+      return setTimeout(() => nav(destination), elapsed)
     })
     return () => timers.forEach(clearTimeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -52,7 +57,7 @@ export default function AnalyzingScreen() {
           <motion.div
             className="h-full bg-gradient-to-r from-[#F7941D] to-[#10B981] rounded-full"
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
           />
         </div>
 
@@ -64,7 +69,7 @@ export default function AnalyzingScreen() {
               <motion.div key={i}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: i <= active ? 1 : 0.3, x: 0 }}
-                transition={{ delay: i * 0.15 }}
+                transition={{ delay: i * 0.08 }}
                 className="flex items-center gap-4">
                 <div className="w-8 h-8 flex items-center justify-center">
                   {done ? (

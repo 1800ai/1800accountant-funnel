@@ -81,7 +81,7 @@ export default function ConsultationConfirmation() {
   const entityLabel = data.hasExistingBusiness === false ? ENTITY_LABELS[data.entityType] : null
 
   return (
-    <div className="min-h-screen bg-white py-10 md:py-16">
+    <div className="min-h-screen bg-white pt-28 pb-20">
       <Confetti />
       <div className="max-w-2xl mx-auto px-6 text-center relative z-10">
         {/* Animated Checkmark */}

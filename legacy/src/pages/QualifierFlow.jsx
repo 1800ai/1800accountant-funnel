@@ -38,16 +38,15 @@ export default function QualifierFlow() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-10 md:py-12">
+    <div className="min-h-screen bg-white pt-24 pb-32">
       <div className="max-w-2xl mx-auto px-6">
         <ProgressBar step={1} />
 
         <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35 }}
           className="mt-10">
           <h2 className="text-2xl lg:text-3xl font-bold font-heading text-center text-gray-900 mb-8">
-            First — do you already have a registered business?
+            First, do you already have a registered business?
           </h2>
-          <p className="text-gray-500 text-center font-body mb-8 -mt-6">We work with tens of thousands of small business owners. This takes about 60 seconds.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <BusinessCard icon={Building2} title="Yes, I have a business"
               subtitle="I'm looking for tax & accounting support"

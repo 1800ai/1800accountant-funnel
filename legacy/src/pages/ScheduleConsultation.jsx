@@ -70,7 +70,7 @@ export default function ScheduleConsultation() {
     : `30-minute Google Meet. Real strategy, no sales pitch. Your specialist will have reviewed everything you've shared before the call.`
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] py-10 md:py-16">
+    <div className="min-h-screen bg-[#F9FAFB] pt-28 pb-20">
       <div className="max-w-5xl mx-auto px-6">
         {/* Personalized hero */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">

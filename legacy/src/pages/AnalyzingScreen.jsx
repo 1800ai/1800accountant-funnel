@@ -11,7 +11,7 @@ const steps = (state, industry) => [
   { text: 'Analyzing your tax profile...', dur: 800 },
   { text: `Searching ${state} tax regulations...`, dur: 1000 },
   { text: `Identifying deductions for ${industry}...`, dur: 1100 },
-  { text: 'Matching you with your dedicated tax expert...', dur: 1100 },
+  { text: 'Building your personalized plan...', dur: 1100 },
 ]
 
 export default function AnalyzingScreen() {

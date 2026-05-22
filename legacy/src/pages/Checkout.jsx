@@ -1,35 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Lock, Check, CreditCard, Sparkles, TrendingUp, ArrowLeft } from 'lucide-react'
+import { Lock, Check, CreditCard, Sparkles } from 'lucide-react'
 import { useFunnel } from '../context/FunnelContext'
 
 const PLAN_INFO = {
-  basic: {
-    name: 'Do-It-Yourself', price: 19, annualPrice: '228',
-    features: [
-      'Industry-tailored Chart of Accounts',
-      'AI Bookkeeping with auto-categorization',
-      'Automated Monthly Financial Reports',
-      'AI Business Tax Return — federal + state, e-filed',
-      'Business Tax Extension',
-      'Unlimited 1099 Generation & E-Filing',
-      'Mileage Tracking',
-    ],
-  },
-  pro: {
-    name: 'Do-It-With-Me', price: 29, annualPrice: '348',
-    features: [
-      'Everything in Do-It-Yourself',
-      'On-Demand Tax Expert — chat or call a CPA',
-      'Personal Tax Return (federal + state)',
-      'Quarterly Estimated Tax Compliance',
-      'CPA Review of every Tax Filing',
-      'Quarterly Strategy Check-ins',
-      'Payroll Setup & Guidance',
-      'Tax Hotline (priority phone access)',
-    ],
-  },
+  basic: { name: 'Do-It-Yourself', price: 19, annualPrice: '228', features: ['Free AI Business Tax Return', 'AI Bookkeeping', 'Complimentary Business Tax Extension', 'Unlimited 1099 Issuing and Filings'] },
+  pro:   { name: 'Do-It-With-Me',  price: 29, annualPrice: '348', features: ['Free AI Business Tax Return', 'AI Bookkeeping', 'Complimentary Business Tax Extension', 'Unlimited 1099 Issuing and Filings', 'Personal Tax Preparation', 'Quarterly Estimated Tax Compliance', 'CPA Review of Taxes', 'Payroll Setup', 'Tax Hotline'] },
 }
 
 const ENTITY_LABELS = { llc: 'LLC', 's-corp': 'S-Corporation', 'c-corp': 'C-Corporation', 'sole-prop': 'Sole Proprietorship' }
@@ -51,17 +28,12 @@ function formatPhone(val) {
   if (nums.length <= 6) return `(${nums.slice(0, 3)}) ${nums.slice(3)}`
   return `(${nums.slice(0, 3)}) ${nums.slice(3, 6)}-${nums.slice(6)}`
 }
-const fmt = (n) => `$${n.toLocaleString()}`
 
 export default function Checkout() {
   const { data, update } = useFunnel()
   const nav = useNavigate()
   const plan = PLAN_INFO[data.selectedPlan] || PLAN_INFO.pro
   const noEntity = data.hasExistingBusiness === false
-
-  // Pull the savings estimate for the chosen plan (set by YourPlan)
-  const savings = data.taxSavingsEstimate
-  const planSavings = savings ? (data.selectedPlan === 'basic' ? savings.diy : savings.diwm) : null
 
   const [contact, setContact] = useState({
     fullName: data.fullName || '',
@@ -120,26 +92,20 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] py-10 md:py-16 px-4">
-      <div className="max-w-5xl mx-auto">
-        <button onClick={() => nav(-1)}
-          className="flex items-center gap-1 text-gray-400 hover:text-gray-700 transition-colors mb-6 text-sm cursor-pointer">
-          <ArrowLeft size={16} /> Back
-        </button>
-
+    <div className="min-h-screen bg-[#F9FAFB] pt-28 pb-20">
+      <div className="max-w-5xl mx-auto px-6">
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="text-2xl md:text-3xl font-extrabold font-heading text-gray-900 mb-2">
-          You're one step from {planSavings ? fmt(planSavings.high) : 'major'} in tax savings.
+          className="text-2xl lg:text-3xl font-extrabold font-heading text-gray-900 mb-10">
+          Complete Your Purchase
         </motion.h1>
-        <p className="text-gray-500 font-body mb-10">
-          Activate {plan.name}{noEntity ? ' and we\'ll form your business and start capturing your savings.' : ' and we\'ll get to work immediately.'}
-        </p>
 
         <div className="flex flex-col-reverse lg:flex-row gap-8">
           {/* LEFT: Contact + Payment */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="flex-1">
             <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-sm border border-gray-100">
+
+              {/* Contact info */}
               <h3 className="text-sm font-semibold font-heading text-gray-900 uppercase tracking-wider mb-4">Your Details</h3>
               <div className="space-y-4 mb-8">
                 <div>
@@ -178,6 +144,7 @@ export default function Checkout() {
 
               <h3 className="text-sm font-semibold font-heading text-gray-900 uppercase tracking-wider mb-4">Payment</h3>
 
+              {/* Express Checkout */}
               <div className="space-y-3 mb-6">
                 <motion.button whileTap={{ scale: 0.98 }} onClick={handleExpress} disabled={loading}
                   className="w-full bg-black text-white py-3.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-[#1a1a1a] transition-colors disabled:opacity-60 text-sm font-semibold">
@@ -195,6 +162,7 @@ export default function Checkout() {
                 <div className="flex-1 h-px bg-gray-200" />
               </div>
 
+              {/* Card Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-1.5 block">Card number</label>
@@ -258,8 +226,6 @@ export default function Checkout() {
                   className="w-full bg-[#F7941D] hover:bg-[#e07e0a] text-white font-semibold py-4 rounded-full transition-all cursor-pointer text-lg mt-2 disabled:opacity-60 flex items-center justify-center gap-2">
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : planSavings ? (
-                    <>Start capturing {fmt(planSavings.mid)} in savings</>
                   ) : (
                     <>{noEntity ? `Form My Business — $${plan.annualPrice}/year` : `Subscribe — $${plan.annualPrice}/year`}</>
                   )}
@@ -272,27 +238,10 @@ export default function Checkout() {
             </div>
           </motion.div>
 
-          {/* RIGHT: Order Summary with savings highlight */}
+          {/* RIGHT: Order Summary */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="lg:w-96 shrink-0">
-            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-sm border border-gray-100 lg:sticky lg:top-8">
-
-              {/* Tax savings highlight at the TOP */}
-              {planSavings && (
-                <div className="bg-gradient-to-br from-[#10B981] to-[#0e9d6c] rounded-2xl p-5 mb-5 text-white">
-                  <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp size={14} />
-                    <span className="text-[11px] uppercase tracking-wider font-bold">Estimated annual savings</span>
-                  </div>
-                  <p className="text-3xl font-extrabold font-heading mb-1">
-                    {fmt(planSavings.low)}<span className="text-white/70 font-medium mx-1">–</span>{fmt(planSavings.high)}
-                  </p>
-                  <p className="text-xs text-white/90 font-body">
-                    Across federal deductions, state credits, and quarterly planning.
-                  </p>
-                </div>
-              )}
-
+            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-sm border border-gray-100 lg:sticky lg:top-28">
               <h3 className="font-bold font-heading text-gray-900 mb-1">{plan.name}</h3>
               <p className="text-sm text-gray-400 mb-5">${plan.annualPrice} billed annually</p>
 

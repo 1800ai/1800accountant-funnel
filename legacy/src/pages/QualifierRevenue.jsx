@@ -15,7 +15,7 @@ export default function QualifierRevenue() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-10 md:py-12">
+    <div className="min-h-screen bg-white pt-24 pb-32">
       <div className="max-w-2xl mx-auto px-6">
         <ProgressBar step={2} />
 
@@ -29,7 +29,7 @@ export default function QualifierRevenue() {
           <h2 className="text-2xl lg:text-3xl font-bold font-heading text-center text-gray-900 mb-2">
             What's your annual revenue?
           </h2>
-          <p className="text-gray-500 text-center font-body mb-8">This helps us match you with a specialist who works with businesses your size — and estimate your savings.</p>
+          <p className="text-gray-500 text-center font-body mb-8">This helps us match you with the right plan.</p>
 
           <div className="grid grid-cols-2 gap-3">
             {REVENUE_OPTIONS.map((r) => {

@@ -57,7 +57,7 @@ export default function LeadForm() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-10 md:py-12">
+    <div className="min-h-screen bg-white pt-24 pb-32">
       <div className="max-w-lg mx-auto px-6">
         <button onClick={() => nav('/schedule')}
           className="flex items-center gap-1 text-gray-400 hover:text-gray-700 transition-colors mb-6 text-sm cursor-pointer">

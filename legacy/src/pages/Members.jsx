@@ -57,7 +57,7 @@ export default function Members() {
     ${err ? 'border-red-400 ring-2 ring-red-400/20' : 'border-gray-200 focus:border-[#F7941D] focus:ring-2 focus:ring-[#F7941D]/20'}`
 
   return (
-    <div className="min-h-screen bg-white py-10 md:py-12">
+    <div className="min-h-screen bg-white pt-24 pb-32">
       <div className="max-w-2xl mx-auto px-6">
         <button onClick={() => nav('/company-info')}
           className="flex items-center gap-1 text-gray-400 hover:text-gray-700 transition-colors mb-6 text-sm cursor-pointer">

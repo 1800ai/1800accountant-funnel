@@ -103,7 +103,7 @@ export default function QualifierDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-10 md:py-12">
+    <div className="min-h-screen bg-white pt-24 pb-32">
       <div className="max-w-2xl mx-auto px-6">
         <ProgressBar step={3} />
 
@@ -115,7 +115,7 @@ export default function QualifierDetails() {
           </button>
 
           <h2 className="text-2xl lg:text-3xl font-bold font-heading text-center text-gray-900">
-            Two more things
+            Tell us a bit more
           </h2>
 
           {/* Industry */}
@@ -171,7 +171,7 @@ export default function QualifierDetails() {
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                   onClick={handleContinue}
                   className="w-full bg-[#F7941D] hover:bg-[#e07e0a] text-white font-semibold py-4 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2">
-                  Find my tax savings <ChevronRight size={18} />
+                  See My Personalized Plan <ChevronRight size={18} />
                 </motion.button>
               </motion.div>
             )}

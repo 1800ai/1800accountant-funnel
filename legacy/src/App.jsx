@@ -1,11 +1,13 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 
-// Overlay-style funnel: no Navbar, no Footer. Each page renders full-screen.
+const LandingPage = lazy(() => import('./pages/LandingPage'))
 const QualifierFlow = lazy(() => import('./pages/QualifierFlow'))            // Step 1: Has Business
 const QualifierRevenue = lazy(() => import('./pages/QualifierRevenue'))      // Step 2: Revenue
-const QualifierDetails = lazy(() => import('./pages/QualifierDetails'))      // Step 3: Industry + State
+const QualifierDetails = lazy(() => import('./pages/QualifierDetails'))      // Step 3: Industry + State (combined)
 const AnalyzingScreen = lazy(() => import('./pages/AnalyzingScreen'))
 const YourPlan = lazy(() => import('./pages/YourPlan'))
 const Checkout = lazy(() => import('./pages/Checkout'))
@@ -13,6 +15,7 @@ const ScheduleConsultation = lazy(() => import('./pages/ScheduleConsultation'))
 const LeadForm = lazy(() => import('./pages/LeadForm'))
 const Confirmation = lazy(() => import('./pages/Confirmation'))
 const ConsultationConfirmation = lazy(() => import('./pages/ConsultationConfirmation'))
+const TaxSavings = lazy(() => import('./pages/TaxSavings'))
 const EntityType = lazy(() => import('./pages/EntityType'))
 const CompanyInfo = lazy(() => import('./pages/CompanyInfo'))
 const Members = lazy(() => import('./pages/Members'))
@@ -39,7 +42,7 @@ function PageWrap({ children }) {
 
 function Loader() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-3 border-[#F7941D] border-t-transparent rounded-full animate-spin" />
     </div>
   )
@@ -51,27 +54,26 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <Navbar />
       <Suspense fallback={<Loader />}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
-            {/* / is the funnel entry — no landing page */}
-            <Route path="/" element={<PageWrap><QualifierFlow /></PageWrap>} />
-
-            {/* Old /get-started → redirect to root */}
-            <Route path="/get-started" element={<Navigate to="/" replace />} />
+            <Route path="/" element={<PageWrap><LandingPage /></PageWrap>} />
 
             {/* Qualifier (3 steps) */}
+            <Route path="/get-started" element={<PageWrap><QualifierFlow /></PageWrap>} />
             <Route path="/get-started/revenue" element={<PageWrap><QualifierRevenue /></PageWrap>} />
             <Route path="/get-started/details" element={<PageWrap><QualifierDetails /></PageWrap>} />
 
-            {/* Legacy redirects */}
+            {/* Legacy redirects from when industry + state were separate pages */}
             <Route path="/get-started/industry" element={<Navigate to="/get-started/details" replace />} />
             <Route path="/get-started/state" element={<Navigate to="/get-started/details" replace />} />
-            {/* Tax savings is now inline on /your-plan — old link redirects to checkout */}
-            <Route path="/tax-savings" element={<Navigate to="/checkout" replace />} />
 
             <Route path="/analyzing" element={<PageWrap><AnalyzingScreen /></PageWrap>} />
             <Route path="/your-plan" element={<PageWrap><YourPlan /></PageWrap>} />
+
+            {/* Under-$50k + has-business path */}
+            <Route path="/tax-savings" element={<PageWrap><TaxSavings /></PageWrap>} />
 
             {/* No-business (entity formation) path */}
             <Route path="/entity-type" element={<PageWrap><EntityType /></PageWrap>} />
@@ -81,19 +83,17 @@ export default function App() {
             {/* Shared subscription checkout */}
             <Route path="/checkout" element={<PageWrap><Checkout /></PageWrap>} />
 
-            {/* Consultation path */}
+            {/* Consultation path (over-$50k + has business, plus "Not sure" CTA) */}
             <Route path="/schedule" element={<PageWrap><ScheduleConsultation /></PageWrap>} />
             <Route path="/lead-form" element={<PageWrap><LeadForm /></PageWrap>} />
             <Route path="/consultation-booked" element={<PageWrap><ConsultationConfirmation /></PageWrap>} />
 
             {/* Subscription confirmation */}
             <Route path="/welcome" element={<PageWrap><Confirmation /></PageWrap>} />
-
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AnimatePresence>
       </Suspense>
+      <Footer />
     </>
   )
 }

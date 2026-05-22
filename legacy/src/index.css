@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --color-orange: #F7941D;
+  --color-orange-hover: #e07e0a;
+  --color-orange-light: #FFF4E6;
+  --color-navy: #1a1a2e;
+  --color-navy-light: #2d2d44;
+  --color-dark: #111827;
+  --color-off-white: #F9FAFB;
+  --color-warm-gray: #F3F4F6;
+  --color-blue: #307CFF;
+  --color-green: #10B981;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --color-text-light: #9CA3AF;
+  --color-border: #E5E7EB;
+}
+
+/* Base overrides — MUST be in @layer base so Tailwind utilities win */
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-body);
+    color: #1A1A1A;
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
+}
+
+/* Component styles — use @layer components so utilities can override */
+@layer components {
+  .nav-glass-dark { backdrop-filter: blur(16px); background: rgba(26,26,46,0.8); border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .nav-glass-light { backdrop-filter: blur(16px); background: rgba(255,255,255,0.85); border-bottom: 1px solid rgba(0,0,0,0.06); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+}
+
+/* Animations — these don't conflict with Tailwind, safe un-layered */
+@keyframes marquee-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.marquee-track { display: flex; width: max-content; animation: marquee-scroll 50s linear infinite; }
+
+@keyframes pulse-orb { 0%,100% { opacity: 0.15; transform: scale(1); } 50% { opacity: 0.25; transform: scale(1.05); } }
+.animate-orb { animation: pulse-orb 8s ease-in-out infinite; }
+
+.noise-overlay::before {
+  content: ''; position: absolute; inset: 0; z-index: 1; opacity: 0.03; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Range slider — pseudo-elements need un-layered styles */
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; background: rgba(255,255,255,0.12); outline: none; cursor: pointer; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #F7941D; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; }
+input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #F7941D; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; border: none; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }

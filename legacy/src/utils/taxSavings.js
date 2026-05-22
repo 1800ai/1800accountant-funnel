@@ -11,7 +11,7 @@ const INDUSTRY_DEDUCTIONS = {
   consulting:     { low: 2000, high: 3500, examples: ['home office', 'software & subscriptions', 'continuing education'] },
 }
 
-// Approx top marginal state income tax rates
+// Approx top marginal state income tax rates (close enough for an estimate)
 const STATE_TAX_RATES = {
   AL: 0.05, AK: 0, AZ: 0.025, AR: 0.044, CA: 0.093, CO: 0.044, CT: 0.0699, DE: 0.066,
   DC: 0.0875, FL: 0, GA: 0.0549, HI: 0.082, ID: 0.058, IL: 0.0495, IN: 0.0305, IA: 0.057,
@@ -22,50 +22,55 @@ const STATE_TAX_RATES = {
   WA: 0, WV: 0.0482, WI: 0.0535, WY: 0,
 }
 
+// Estimated revenue midpoint (under-$50k path)
 const REVENUE_ESTIMATE_UNDER = 40000
 
 const FEDERAL_RATE = 0.22
 const SE_TAX_RATE = 0.153
 
-// Calculates plan-specific savings estimates so we can sell DIWM as the better value.
-// DIY captures industry deductions + light planning.
-// DIWM additionally captures S-Corp election savings (requires CPA help to set up)
-// + tighter quarterly planning + audit-defense protection.
-export function calculatePlanSavings({ revenue, industry, otherIndustry, state }) {
+export function calculateSavings({ revenue, industry, otherIndustry, state }) {
   const estRevenue = REVENUE_ESTIMATE_UNDER
   const stateRate = STATE_TAX_RATES[state] ?? 0.05
 
+  // Industry deductions — fall back if industry not in map (e.g. user typed "Other")
   const ded = INDUSTRY_DEDUCTIONS[industry] || {
     low: 2000, high: 4000,
     examples: ['home office', 'business expenses', 'mileage & travel'],
   }
 
-  // Deductions captured at both tiers
-  const dedLow = Math.round(ded.low * (FEDERAL_RATE + stateRate))
-  const dedHigh = Math.round(ded.high * (FEDERAL_RATE + stateRate))
+  // Federal + state savings on recaptured deductions
+  const dedTaxLow = Math.round(ded.low * (FEDERAL_RATE + stateRate))
+  const dedTaxHigh = Math.round(ded.high * (FEDERAL_RATE + stateRate))
 
-  // S-Corp election savings — requires CPA setup, only at DIWM tier
+  // S-Corp election savings (~40% income as distributions, save SE tax, 0.7 haircut for reasonable salary)
   const distributionPortion = 0.4
-  const sCorp = Math.round(estRevenue * distributionPortion * SE_TAX_RATE * 0.7)
+  const sCorpRaw = Math.round(estRevenue * distributionPortion * SE_TAX_RATE * 0.7)
+  const sCorpLow = sCorpRaw
+  const sCorpHigh = Math.round(sCorpRaw * 1.4)
 
-  // Quarterly planning (light at DIY, deeper at DIWM)
-  const planDiy = 400
-  const planDiwm = 900
-
-  // DIY: deductions + minimal planning
-  const diyLow = dedLow + planDiy
-  const diyHigh = dedHigh + Math.round(planDiy * 1.4)
-
-  // DIWM: deductions + S-Corp + deeper planning
-  const diwmLow = dedLow + sCorp + planDiwm
-  const diwmHigh = dedHigh + Math.round(sCorp * 1.4) + Math.round(planDiwm * 1.4)
+  // Quarterly tax planning / penalty avoidance
+  const planLow = 300
+  const planHigh = 600
 
   return {
-    diy:  { low: diyLow,  high: diyHigh,  mid: Math.round((diyLow + diyHigh) / 2) },
-    diwm: { low: diwmLow, high: diwmHigh, mid: Math.round((diwmLow + diwmHigh) / 2) },
-    industry,
-    otherIndustry,
-    state,
-    examples: ded.examples,
+    totalLow: dedTaxLow + sCorpLow + planLow,
+    totalHigh: dedTaxHigh + sCorpHigh + planHigh,
+    breakdown: [
+      {
+        title: 'Industry-specific deductions',
+        low: dedTaxLow, high: dedTaxHigh,
+        detail: `Common write-offs for ${industry === 'other' ? (otherIndustry || 'small business') : industry} businesses: ${ded.examples.join(', ')}.`,
+      },
+      {
+        title: 'S-Corp election (self-employment tax)',
+        low: sCorpLow, high: sCorpHigh,
+        detail: 'Electing S-Corporation status lets you split income between salary and distributions, avoiding the 15.3% self-employment tax on the distribution portion.',
+      },
+      {
+        title: 'State tax optimization & quarterly planning',
+        low: planLow, high: planHigh,
+        detail: 'Proactive quarterly estimates avoid IRS underpayment penalties and surface state-specific credits.',
+      },
+    ],
   }
 }

@@ -8,26 +8,23 @@ const PLAN_INFO = {
   basic: {
     name: 'Do-It-Yourself', price: 19, annualPrice: '228',
     features: [
-      'Industry-tailored Chart of Accounts',
-      'AI Bookkeeping with auto-categorization',
+      'AI Bookkeeping with industry-tailored Chart of Accounts',
       'Automated Monthly Financial Reports',
       'AI Business Tax Return — federal + state, e-filed',
-      'Business Tax Extension',
-      'Unlimited 1099 Generation & E-Filing',
-      'Mileage Tracking',
+      'Free Business Tax Extension',
+      'Unlimited 1099 E-Filing',
+      'Mileage & Receipt Capture',
+      'Email + Chat Support',
     ],
   },
   pro: {
     name: 'Do-It-With-Me', price: 29, annualPrice: '348',
     features: [
       'Everything in Do-It-Yourself',
-      'On-Demand Tax Expert — chat or call a CPA',
+      'On-Demand Tax Advisor — unlimited chat + video meetings',
       'Personal Tax Return (federal + state)',
-      'Quarterly Estimated Tax Compliance',
-      'CPA Review of every Tax Filing',
-      'Quarterly Strategy Check-ins',
+      'Expert review of every tax filing before you submit',
       'Payroll Setup & Guidance',
-      'Tax Hotline (priority phone access)',
     ],
   },
 }

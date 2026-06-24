@@ -1,23 +1,26 @@
 export function getRecommendedPlan(revenue) {
   switch (revenue) {
-    case '<50k': return 'pro'        // DIWM is most chosen for under-50k
-    case '50k-150k': return 'core'   // Core Accounting
-    case '150k-500k':
-    case '500k+': return 'complete'  // Business Complete (core + bookkeeping + payroll)
-    default: return 'pro'
+    case '0-10k':
+    case '10k-50k':  return 'pro'
+    case '50k-100k':
+    case '100k+':    return 'pro'
+    default:         return 'pro'
   }
 }
 
 export function getRevenueLabel(revenue) {
   const map = {
-    '<50k': 'under $50K',
-    '50k-150k': '$50K–$150K',
-    '150k-500k': '$150K–$500K',
-    '500k+': '$500K+',
+    '0-10k':    '$0–$10K',
+    '10k-50k':  '$10K–$50K',
+    '50k-100k': '$50K–$100K',
+    '100k+':    '$100K+',
   }
   return map[revenue] || revenue
 }
 
+// Under-threshold = $0-$10K and $10K-$50K. Used to route has-business users:
+// under threshold → packages, over threshold → consultation.
+// (For no-business users, ALL revenue brackets route to packages.)
 export function isUnderFiftyK(revenue) {
-  return revenue === '<50k'
+  return revenue === '0-10k' || revenue === '10k-50k'
 }

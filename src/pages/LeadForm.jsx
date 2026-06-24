@@ -53,13 +53,13 @@ export default function LeadForm() {
     if (!validateEmail(data.email || '')) errs.email = 'Enter a valid email'
     if (!validatePhone(data.phone || '')) errs.phone = 'Enter a 10-digit phone number'
     setErrors(errs)
-    if (Object.keys(errs).length === 0) nav('/consultation-booked')
+    if (Object.keys(errs).length === 0) nav('/intake/confirmation')
   }
 
   return (
     <div className="min-h-screen bg-white py-10 md:py-12">
       <div className="max-w-lg mx-auto px-6">
-        <button onClick={() => nav('/schedule')}
+        <button onClick={() => nav('/intake/schedule')}
           className="flex items-center gap-1 text-gray-400 hover:text-gray-700 transition-colors mb-6 text-sm cursor-pointer">
           <ArrowLeft size={16} /> Back
         </button>

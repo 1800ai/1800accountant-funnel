@@ -11,9 +11,10 @@ export const INDUSTRIES = [
   { id: 'other', label: 'Other', icon: 'MoreHorizontal' },
 ]
 
+// Salesforce-aligned revenue tiers
 export const REVENUE_OPTIONS = [
-  { value: '<50k', label: 'Less than $50K' },
-  { value: '50k-150k', label: '$50K \u2013 $150K' },
-  { value: '150k-500k', label: '$150K \u2013 $500K' },
-  { value: '500k+', label: '$500K+' },
+  { value: '0-10k',   label: '$0 – $10K' },
+  { value: '10k-50k', label: '$10K – $50K' },
+  { value: '50k-100k', label: '$50K – $100K' },
+  { value: '100k+',   label: 'More than $100K' },
 ]

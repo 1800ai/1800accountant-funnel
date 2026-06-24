@@ -11,7 +11,7 @@ export default function QualifierRevenue() {
 
   const select = (val) => {
     update({ revenue: val })
-    setTimeout(() => nav('/get-started/details'), 400)
+    setTimeout(() => nav('/intake/industry'), 400)
   }
 
   return (
@@ -21,7 +21,7 @@ export default function QualifierRevenue() {
 
         <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35 }}
           className="mt-10">
-          <button onClick={() => nav('/get-started')}
+          <button onClick={() => nav('/intake/business')}
             className="flex items-center gap-1 text-gray-400 hover:text-gray-700 transition-colors mb-6 text-sm cursor-pointer">
             <ArrowLeft size={16} /> Back
           </button>

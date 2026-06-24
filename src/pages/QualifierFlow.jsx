@@ -34,7 +34,7 @@ export default function QualifierFlow() {
 
   const select = (val) => {
     update({ hasExistingBusiness: val })
-    setTimeout(() => nav('/get-started/revenue'), 400)
+    setTimeout(() => nav('/intake/revenue'), 400)
   }
 
   return (
@@ -44,10 +44,10 @@ export default function QualifierFlow() {
 
         <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35 }}
           className="mt-10">
-          <h2 className="text-2xl lg:text-3xl font-bold font-heading text-center text-gray-900 mb-8">
-            First — do you already have a registered business?
+          <h2 className="text-2xl lg:text-3xl font-bold font-heading text-center text-gray-900 mb-2">
+            First — do you have a business (LLC, S Corp, Partnership, etc)?
           </h2>
-          <p className="text-gray-500 text-center font-body mb-8 -mt-6">We work with tens of thousands of small business owners. This takes about 60 seconds.</p>
+          <p className="text-gray-500 text-center font-body mb-8">We work with tens of thousands of small business owners. This takes about 60 seconds.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <BusinessCard icon={Building2} title="Yes, I have a business"
               subtitle="I'm looking for tax & accounting support"

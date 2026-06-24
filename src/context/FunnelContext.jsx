@@ -11,7 +11,7 @@ export function FunnelProvider({ children }) {
     otherIndustry: '',
     state: null,
 
-    // Contact (collected at different points based on path)
+    // Contact
     companyName: '',
     fullName: '',
     email: '',
@@ -22,13 +22,20 @@ export function FunnelProvider({ children }) {
     selectedDate: null,
     selectedTime: null,
 
-    // Entity formation (under-50k + no business path)
-    entityType: null,
+    // Entity formation — always LLC now (entity-type step skipped per QA)
+    entityType: 'llc',
     businessAddress: '',
     businessPurpose: '',
     members: [],
 
-    // Tax savings reveal (under-50k + has business path)
+    // Billing
+    billingAddress: { line1: '', city: '', state: '', zip: '' },
+
+    // Flow flags
+    purchased: false,        // set true after successful checkout (EF flow)
+    meetNow: false,          // user wants instant Meet Now session
+
+    // Tax savings reveal
     taxSavingsEstimate: null,
   })
 

@@ -99,7 +99,7 @@ export default function QualifierDetails() {
 
   const handleContinue = () => {
     if (!canContinue) return
-    nav('/analyzing')
+    nav('/intake/analyzing')
   }
 
   return (
@@ -109,13 +109,13 @@ export default function QualifierDetails() {
 
         <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35 }}
           className="mt-10 space-y-10">
-          <button onClick={() => nav('/get-started/revenue')}
+          <button onClick={() => nav('/intake/revenue')}
             className="flex items-center gap-1 text-gray-400 hover:text-gray-700 transition-colors text-sm cursor-pointer">
             <ArrowLeft size={16} /> Back
           </button>
 
           <h2 className="text-2xl lg:text-3xl font-bold font-heading text-center text-gray-900">
-            Two more things
+            A couple more details
           </h2>
 
           {/* Industry */}
@@ -171,7 +171,7 @@ export default function QualifierDetails() {
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                   onClick={handleContinue}
                   className="w-full bg-[#F7941D] hover:bg-[#e07e0a] text-white font-semibold py-4 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2">
-                  Find my tax savings <ChevronRight size={18} />
+                  Continue <ChevronRight size={18} />
                 </motion.button>
               </motion.div>
             )}

@@ -2,20 +2,19 @@ import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 
-// Overlay-style funnel: no Navbar, no Footer. Each page renders full-screen.
-const QualifierFlow = lazy(() => import('./pages/QualifierFlow'))            // Step 1: Has Business
-const QualifierRevenue = lazy(() => import('./pages/QualifierRevenue'))      // Step 2: Revenue
-const QualifierDetails = lazy(() => import('./pages/QualifierDetails'))      // Step 3: Industry + State
-const AnalyzingScreen = lazy(() => import('./pages/AnalyzingScreen'))
-const YourPlan = lazy(() => import('./pages/YourPlan'))
-const Checkout = lazy(() => import('./pages/Checkout'))
-const ScheduleConsultation = lazy(() => import('./pages/ScheduleConsultation'))
-const LeadForm = lazy(() => import('./pages/LeadForm'))
-const Confirmation = lazy(() => import('./pages/Confirmation'))
-const ConsultationConfirmation = lazy(() => import('./pages/ConsultationConfirmation'))
-const EntityType = lazy(() => import('./pages/EntityType'))
-const CompanyInfo = lazy(() => import('./pages/CompanyInfo'))
-const Members = lazy(() => import('./pages/Members'))
+// All routes live under /intake/* per QA spec.
+const QualifierFlow = lazy(() => import('./pages/QualifierFlow'))            // /intake/business
+const QualifierRevenue = lazy(() => import('./pages/QualifierRevenue'))      // /intake/revenue
+const QualifierDetails = lazy(() => import('./pages/QualifierDetails'))      // /intake/industry (industry + state combined)
+const AnalyzingScreen = lazy(() => import('./pages/AnalyzingScreen'))        // /intake/analyzing
+const Packages = lazy(() => import('./pages/YourPlan'))                      // /intake/packages
+const BusinessName = lazy(() => import('./pages/CompanyInfo'))               // /intake/business-name
+const Checkout = lazy(() => import('./pages/Checkout'))                      // /intake/checkout
+const Welcome = lazy(() => import('./pages/Confirmation'))                   // /intake/welcome
+const Members = lazy(() => import('./pages/Members'))                        // /intake/members
+const Schedule = lazy(() => import('./pages/ScheduleConsultation'))          // /intake/schedule
+const LeadForm = lazy(() => import('./pages/LeadForm'))                      // /intake/lead
+const Confirmation = lazy(() => import('./pages/ConsultationConfirmation'))  // /intake/confirmation
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -54,43 +53,53 @@ export default function App() {
       <Suspense fallback={<Loader />}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
-            {/* / is the funnel entry — no landing page */}
-            <Route path="/" element={<PageWrap><QualifierFlow /></PageWrap>} />
+            {/* Root and old entry → /intake/business */}
+            <Route path="/" element={<Navigate to="/intake/business" replace />} />
+            <Route path="/get-started" element={<Navigate to="/intake/business" replace />} />
 
-            {/* Old /get-started → redirect to root */}
-            <Route path="/get-started" element={<Navigate to="/" replace />} />
+            {/* Qualifier */}
+            <Route path="/intake/business" element={<PageWrap><QualifierFlow /></PageWrap>} />
+            <Route path="/intake/revenue" element={<PageWrap><QualifierRevenue /></PageWrap>} />
+            <Route path="/intake/industry" element={<PageWrap><QualifierDetails /></PageWrap>} />
 
-            {/* Qualifier (3 steps) */}
-            <Route path="/get-started/revenue" element={<PageWrap><QualifierRevenue /></PageWrap>} />
-            <Route path="/get-started/details" element={<PageWrap><QualifierDetails /></PageWrap>} />
+            {/* Analyzing */}
+            <Route path="/intake/analyzing" element={<PageWrap><AnalyzingScreen /></PageWrap>} />
+
+            {/* Flow A — Purchase / Entity Formation */}
+            <Route path="/intake/packages" element={<PageWrap><Packages /></PageWrap>} />
+            <Route path="/intake/business-name" element={<PageWrap><BusinessName /></PageWrap>} />
+            <Route path="/intake/checkout" element={<PageWrap><Checkout /></PageWrap>} />
+            <Route path="/intake/welcome" element={<PageWrap><Welcome /></PageWrap>} />
+            <Route path="/intake/members" element={<PageWrap><Members /></PageWrap>} />
+
+            {/* Flow A + B — Schedule */}
+            <Route path="/intake/schedule" element={<PageWrap><Schedule /></PageWrap>} />
+
+            {/* Flow B — Consultation lead form (skipped for EF) */}
+            <Route path="/intake/lead" element={<PageWrap><LeadForm /></PageWrap>} />
+
+            {/* Final confirmation (both flows) */}
+            <Route path="/intake/confirmation" element={<PageWrap><Confirmation /></PageWrap>} />
 
             {/* Legacy redirects */}
-            <Route path="/get-started/industry" element={<Navigate to="/get-started/details" replace />} />
-            <Route path="/get-started/state" element={<Navigate to="/get-started/details" replace />} />
-            {/* Tax savings is now inline on /your-plan — old link redirects to checkout */}
-            <Route path="/tax-savings" element={<Navigate to="/checkout" replace />} />
-
-            <Route path="/analyzing" element={<PageWrap><AnalyzingScreen /></PageWrap>} />
-            <Route path="/your-plan" element={<PageWrap><YourPlan /></PageWrap>} />
-
-            {/* No-business (entity formation) path */}
-            <Route path="/entity-type" element={<PageWrap><EntityType /></PageWrap>} />
-            <Route path="/company-info" element={<PageWrap><CompanyInfo /></PageWrap>} />
-            <Route path="/members" element={<PageWrap><Members /></PageWrap>} />
-
-            {/* Shared subscription checkout */}
-            <Route path="/checkout" element={<PageWrap><Checkout /></PageWrap>} />
-
-            {/* Consultation path */}
-            <Route path="/schedule" element={<PageWrap><ScheduleConsultation /></PageWrap>} />
-            <Route path="/lead-form" element={<PageWrap><LeadForm /></PageWrap>} />
-            <Route path="/consultation-booked" element={<PageWrap><ConsultationConfirmation /></PageWrap>} />
-
-            {/* Subscription confirmation */}
-            <Route path="/welcome" element={<PageWrap><Confirmation /></PageWrap>} />
+            <Route path="/get-started/revenue" element={<Navigate to="/intake/revenue" replace />} />
+            <Route path="/get-started/details" element={<Navigate to="/intake/industry" replace />} />
+            <Route path="/get-started/industry" element={<Navigate to="/intake/industry" replace />} />
+            <Route path="/get-started/state" element={<Navigate to="/intake/industry" replace />} />
+            <Route path="/analyzing" element={<Navigate to="/intake/analyzing" replace />} />
+            <Route path="/your-plan" element={<Navigate to="/intake/packages" replace />} />
+            <Route path="/entity-type" element={<Navigate to="/intake/business-name" replace />} />
+            <Route path="/company-info" element={<Navigate to="/intake/business-name" replace />} />
+            <Route path="/members" element={<Navigate to="/intake/members" replace />} />
+            <Route path="/checkout" element={<Navigate to="/intake/checkout" replace />} />
+            <Route path="/schedule" element={<Navigate to="/intake/schedule" replace />} />
+            <Route path="/lead-form" element={<Navigate to="/intake/lead" replace />} />
+            <Route path="/welcome" element={<Navigate to="/intake/welcome" replace />} />
+            <Route path="/consultation-booked" element={<Navigate to="/intake/confirmation" replace />} />
+            <Route path="/tax-savings" element={<Navigate to="/intake/checkout" replace />} />
 
             {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/intake/business" replace />} />
           </Routes>
         </AnimatePresence>
       </Suspense>

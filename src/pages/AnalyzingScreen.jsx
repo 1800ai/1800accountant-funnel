@@ -26,7 +26,7 @@ export default function AnalyzingScreen() {
 
   // Skip plan selection for "Yes, I have a business" + over-$50k → straight to scheduler
   const skipToSchedule = data.hasExistingBusiness === true && !isUnderFiftyK(data.revenue)
-  const destination = skipToSchedule ? '/schedule' : '/your-plan'
+  const destination = skipToSchedule ? '/intake/schedule' : '/intake/packages'
 
   const sequence = steps(stateName, industryName)
 

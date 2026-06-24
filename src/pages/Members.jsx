@@ -49,7 +49,7 @@ export default function Members() {
     const hasError = errs.some((row) => Object.keys(row).length > 0)
     if (hasError) return
     update({ members })
-    nav('/checkout')
+    nav('/intake/schedule')
   }
 
   const inputClass = (err) =>
@@ -59,7 +59,7 @@ export default function Members() {
   return (
     <div className="min-h-screen bg-white py-10 md:py-12">
       <div className="max-w-2xl mx-auto px-6">
-        <button onClick={() => nav('/company-info')}
+        <button onClick={() => nav('/intake/welcome')}
           className="flex items-center gap-1 text-gray-400 hover:text-gray-700 transition-colors mb-6 text-sm cursor-pointer">
           <ArrowLeft size={16} /> Back
         </button>
@@ -124,7 +124,7 @@ export default function Members() {
 
           <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             className="w-full bg-[#F7941D] hover:bg-[#e07e0a] text-white font-semibold py-4 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2 mt-4">
-            Continue to Checkout <ChevronRight size={18} />
+            Continue to Scheduling <ChevronRight size={18} />
           </motion.button>
         </form>
       </div>

@@ -1,169 +1,167 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, Sparkles, TrendingUp, AlertTriangle, MessageCircle, ArrowRight, Star } from 'lucide-react'
+import { Check, Sparkles, TrendingUp, ChevronRight, AlertTriangle, MessageCircle } from 'lucide-react'
 import { useFunnel } from '../context/FunnelContext'
 import { isUnderFiftyK } from '../utils/recommendations'
 import { calculatePlanSavings } from '../utils/taxSavings'
 import { INDUSTRIES } from '../utils/industries'
 import { US_STATES } from '../utils/states'
-import { getStateFilingFee } from '../utils/stateFees'
+import { STATE_FILING_FEES } from '../utils/stateFees'
 
 const fmt = (n) => `$${n.toLocaleString()}`
 
-// Feature lists vary by path. Has-business users skip the LLC/EIN items.
-function getFeatures(hasBusiness) {
-  if (hasBusiness === false) {
-    return {
-      basic: [
-        { label: 'LLC Formation' },
-        { label: 'Federal EIN' },
-        { label: 'AI Bookkeeping' },
-        { label: 'Business Tax Return (filed for you)' },
-        { label: 'Free Tax Extension' },
-        { label: 'Unlimited 1099 Filings' },
-      ],
-      pro: [
-        { label: 'Everything in Basic' },
-        { label: 'S-Corp Tax Election', highlight: true, note: 'Saves the average client $4,000+/yr' },
-        { label: 'On-Demand Tax Expert', highlight: true, note: 'Chat or schedule a video meeting whenever you need' },
-        { label: 'Expert review of every tax filing' },
-        { label: 'Payroll Setup' },
-      ],
-    }
-  }
-  return {
-    basic: [
-      { label: 'AI Bookkeeping' },
-      { label: 'Business Tax Return (filed for you)' },
-      { label: 'Free Tax Extension' },
-      { label: 'Unlimited 1099 Filings' },
-    ],
-    pro: [
-      { label: 'Everything in Basic' },
-      { label: 'S-Corp Tax Election', highlight: true, note: 'Saves the average client $4,000+/yr' },
-      { label: 'On-Demand Tax Expert', highlight: true, note: 'Chat or schedule a video meeting whenever you need' },
-      { label: 'Expert review of every tax filing' },
-      { label: 'Payroll Setup' },
-    ],
-  }
+// Format: "Service name (what it is) — value & benefit (what it does)"
+const SHARED_FEATURES_EF = [
+  { name: 'LLC Formation', detail: 'we file your business with the state and shield your personal assets from day one' },
+  { name: 'Federal EIN', detail: "your business's IRS ID so you can open a business bank account and elect S-Corp" },
+]
+const SHARED_FEATURES = [
+  { name: 'AI Bookkeeping with industry Chart of Accounts', detail: "every expense categorized correctly so you don't miss deductions" },
+  { name: 'AI Business Tax Return (federal + state, e-filed)', detail: 'no preparer fees, no software to learn' },
+  { name: 'Free Business Tax Extension', detail: "extra time to file when you need it, no penalties" },
+  { name: 'Unlimited 1099 E-Filing', detail: 'bulk file contractor 1099s in minutes' },
+  { name: 'Automated Monthly Financial Reports', detail: 'P&L, balance sheet, and cash flow updated automatically' },
+]
+// All in this list get ORANGE checkmarks — "what's new in Pro"
+const PRO_ONLY_FEATURES = [
+  { name: 'S-Corp Tax Election', detail: 'the single biggest tax-saving move — saves the average client $4,000+/yr in self-employment tax' },
+  { name: 'On-Demand Tax Advisor', detail: 'chat anytime or schedule a video meeting with an expert to ask anything about your business' },
+  { name: 'Expert review of every tax filing', detail: 'a tax pro signs off before you submit so nothing slips through' },
+  { name: 'Payroll Setup & Guidance', detail: 'pay yourself the right way (required for S-Corp) and pay employees on time' },
+]
+
+function planName(level, industryId) {
+  const ind = INDUSTRIES.find((i) => i.id === industryId)
+  if (!ind || ind.id === 'other') return level === 'basic' ? 'Basic Plan' : 'Pro Plan'
+  // Strip "& X" suffix and pluralization for a clean adjective
+  const short = ind.label.split(/[&\/]/)[0].trim()
+  return level === 'basic' ? `Basic ${short} Plan` : `Pro ${short} Plan`
 }
 
-function PriceBreakdown({ stateName, stateFee, annualPrice, showStateFee }) {
+function PriceBreakdown({ hasBusiness, filingFee, stateName, annual, recommended }) {
   return (
-    <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 space-y-3">
-      {showStateFee && (
-        <div className="flex items-start justify-between gap-3">
+    <div className={`rounded-2xl border p-4 mb-5 ${recommended ? 'bg-[#F7941D]/5 border-[#F7941D]/30' : 'bg-gray-50 border-gray-200'}`}>
+      {hasBusiness === false && (
+        <div className="flex items-center justify-between pb-3 border-b border-gray-200/70 mb-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Due Today</p>
+            <p className="text-[10px] uppercase tracking-wider font-bold text-gray-500">Due Today</p>
             <p className="text-xs text-gray-500 mt-0.5">{stateName} state filing fee</p>
           </div>
-          <span className="font-bold text-gray-900 font-heading whitespace-nowrap">{fmt(stateFee)}</span>
+          <p className="text-lg font-bold font-heading text-gray-900">${filingFee}</p>
         </div>
       )}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-            {showStateFee ? 'In 14 Days' : 'Annual Plan'}
+          <p className="text-[10px] uppercase tracking-wider font-bold text-gray-500">
+            {hasBusiness === false ? 'In 14 days' : 'Total'}
           </p>
           <p className="text-xs text-gray-500 mt-0.5">
-            {showStateFee ? 'After we file your business' : 'Billed annually, cancel anytime'}
+            {hasBusiness === false ? 'After we file your business' : 'Billed annually'}
           </p>
         </div>
-        <span className="font-bold text-gray-900 font-heading whitespace-nowrap">{fmt(annualPrice)}</span>
+        <p className="text-2xl font-extrabold font-heading text-gray-900">${annual}</p>
       </div>
     </div>
   )
 }
 
-function PlanCard({ tier, name, blurb, annualPrice, stateName, stateFee, showStateFee, features, selected, recommended, onSelect, savings }) {
+function FeatureRow({ name, detail, orange }) {
   return (
-    <motion.button
-      type="button"
-      onClick={onSelect}
-      whileTap={{ scale: 0.995 }}
-      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: recommended ? 0.05 : 0 }}
-      className={`relative w-full text-left rounded-3xl bg-white flex flex-col transition-all overflow-hidden border-2
+    <li className="flex items-start gap-3">
+      <Check size={16} className={`shrink-0 mt-0.5 ${orange ? 'text-[#F7941D]' : 'text-[#10B981]'}`} />
+      <div className="text-sm leading-snug">
+        <span className={`font-semibold ${orange ? 'text-gray-900' : 'text-gray-900'}`}>{name}</span>
+        <span className="text-gray-500"> — {detail}</span>
+      </div>
+    </li>
+  )
+}
+
+function PlanCard({ level, hasBusiness, industryId, savings, filingFee, stateName, selected, onSelect }) {
+  const isPro = level === 'pro'
+  const annual = isPro ? 348 : 228
+  const features = isPro
+    ? [
+        // Basic features first (green checkmarks) — "everything in basic"
+        ...(hasBusiness === false ? SHARED_FEATURES_EF : []),
+        ...SHARED_FEATURES,
+        // Then pro-only (orange checkmarks) — "what's new in Pro"
+        ...PRO_ONLY_FEATURES.map((f) => ({ ...f, orange: true })),
+      ]
+    : [
+        ...(hasBusiness === false ? SHARED_FEATURES_EF : []),
+        ...SHARED_FEATURES,
+      ]
+
+  return (
+    <motion.button onClick={onSelect}
+      initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2 }}
+      className={`relative rounded-3xl bg-white text-left transition-all w-full p-6 md:p-7 border-2
         ${selected
-          ? 'border-[#F7941D] shadow-[0_8px_40px_rgba(247,148,29,0.18)]'
-          : 'border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md'}
+          ? 'border-[#F7941D] shadow-[0_0_40px_rgba(247,148,29,0.25)]'
+          : 'border-gray-200 shadow-md hover:shadow-lg'}
       `}>
-      {recommended && (
-        <div className="absolute top-0 right-0 px-3 py-1 rounded-bl-xl text-[11px] font-bold text-white bg-gradient-to-r from-[#F7941D] to-[#e07e0a] flex items-center gap-1">
+      {isPro && (
+        <div className={`absolute -top-3.5 right-6 px-3 py-1 rounded-full text-[11px] font-bold text-white whitespace-nowrap bg-gradient-to-r from-[#F7941D] to-[#e07e0a] flex items-center gap-1`}>
           <Sparkles size={11} /> Recommended
         </div>
       )}
 
-      <div className="p-6 flex flex-col flex-1">
-        {/* Selected indicator */}
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="text-lg font-bold font-heading text-gray-900">{name}</h3>
-          <div className={`w-5 h-5 rounded-full border-2 transition-all shrink-0 ml-3
-            ${selected ? 'border-[#F7941D] bg-[#F7941D]' : 'border-gray-300'}
-          `}>
-            {selected && <Check size={12} strokeWidth={3} className="text-white m-auto block mt-0.5" />}
-          </div>
+      {/* Selected radio indicator */}
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="text-xl font-bold font-heading text-gray-900">{planName(level, industryId)}</h3>
+          <p className="text-sm text-gray-500 font-body mt-0.5">
+            {isPro ? 'Everything in Basic — plus S-Corp election and an expert on call.' : 'Get incorporated, books done, taxes filed.'}
+          </p>
         </div>
-        <p className="text-xs text-gray-500 font-body mb-4 leading-relaxed">{blurb}</p>
-
-        <div className="flex items-baseline gap-1 mb-4">
-          <span className="text-3xl font-extrabold font-heading text-gray-900">{fmt(annualPrice)}</span>
-          <span className="text-sm text-gray-400 font-medium">/year</span>
+        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ml-3 mt-1
+          ${selected ? 'border-[#F7941D] bg-[#F7941D]' : 'border-gray-300 bg-white'}
+        `}>
+          {selected && <Check size={14} className="text-white" />}
         </div>
+      </div>
 
-        <PriceBreakdown stateName={stateName} stateFee={stateFee} annualPrice={annualPrice} showStateFee={showStateFee} />
+      <PriceBreakdown hasBusiness={hasBusiness} filingFee={filingFee} stateName={stateName} annual={annual} recommended={isPro} />
 
-        {/* Savings */}
-        {savings && (
-          <div className={`mt-4 flex items-center gap-2 text-sm font-semibold
-            ${tier === 'pro' ? 'text-[#10B981]' : 'text-gray-500'}`}>
-            <TrendingUp size={14} />
-            Est. saves {fmt(savings.low)}–{fmt(savings.high)} in taxes
-          </div>
-        )}
+      <ul className="space-y-2.5">
+        {features.map((f, i) => (
+          <FeatureRow key={i} name={f.name} detail={f.detail} orange={f.orange} />
+        ))}
+      </ul>
 
-        {/* Feature list — clean, no long descriptions */}
-        <ul className="mt-5 space-y-2.5">
-          {features.map((f, i) => (
-            <li key={i} className="flex items-start gap-2.5">
-              <Check size={15} className={`shrink-0 mt-0.5 ${f.highlight ? 'text-[#F7941D]' : 'text-[#10B981]'}`} />
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-body leading-snug ${f.highlight ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
-                  {f.label}
-                </p>
-                {f.note && (
-                  <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">{f.note}</p>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+      {/* Savings strip */}
+      <div className={`mt-5 rounded-xl p-3 flex items-center gap-2 ${isPro ? 'bg-[#10B981]/10' : 'bg-gray-50'}`}>
+        <TrendingUp size={16} className={isPro ? 'text-[#10B981]' : 'text-gray-500'} />
+        <span className={`text-xs font-medium ${isPro ? 'text-[#10B981]' : 'text-gray-600'}`}>
+          Est. annual tax savings: <span className="font-bold">{fmt(savings.low)}–{fmt(savings.high)}</span>
+        </span>
       </div>
     </motion.button>
   )
 }
 
-export default function YourPlan() {
+export default function Packages() {
   const { data, update } = useFunnel()
   const nav = useNavigate()
 
   const hasBusiness = data.hasExistingBusiness
   const under = isUnderFiftyK(data.revenue)
   const industryLabel = data.industry === 'other'
-    ? (data.otherIndustry || 'Your')
-    : (INDUSTRIES.find((i) => i.id === data.industry)?.label || 'Your')
+    ? (data.otherIndustry || 'your industry')
+    : (INDUSTRIES.find((i) => i.id === data.industry)?.label || 'your industry')
   const stateName = US_STATES.find((s) => s.abbr === data.state)?.name || data.state || 'your state'
-  const stateFee = getStateFilingFee(data.state)
-  const showStateFee = hasBusiness === false  // only for entity formation path
+  const filingFee = STATE_FILING_FEES[data.state] ?? 100
 
-  // Pro preselected by default
-  const [selectedPlan, setSelectedPlan] = useState(data.selectedPlan || 'pro')
+  // Pro is preselected by default
+  const [selected, setSelected] = useState(data.selectedPlan === 'basic' ? 'basic' : 'pro')
 
-  // Defensive: has-business + over-$50K shouldn't be here
+  // Has-business + over-50K shouldn't be here — they go to /intake/schedule
   useEffect(() => {
     if (hasBusiness === true && data.revenue && !under) {
-      nav('/schedule', { replace: true })
+      nav('/intake/schedule', { replace: true })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -173,119 +171,86 @@ export default function YourPlan() {
     otherIndustry: data.otherIndustry, state: data.state,
   }), [data.revenue, data.industry, data.otherIndustry, data.state])
 
-  useEffect(() => { update({ taxSavingsEstimate: savings }) /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [savings])
-
-  const features = getFeatures(hasBusiness)
-  const upsellDelta = savings.diwm.mid - savings.diy.mid
-
-  // Plan title takes the industry — "Basic Construction Plan" / "Pro Construction Plan"
-  const titlePrefix = data.industry === 'other' || !data.industry ? '' : `${industryLabel} `
-
-  // Use shortened industry name for titles (drop "& Subcategory")
-  const shortIndustry = industryLabel.split('&')[0].split('/')[0].trim()
+  useEffect(() => {
+    update({ taxSavingsEstimate: savings, selectedPlan: selected === 'basic' ? 'basic' : 'pro' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savings, selected])
 
   const handleContinue = () => {
-    const planId = selectedPlan === 'pro' ? 'pro' : 'basic'
-    update({ selectedPlan: planId })
-    if (hasBusiness) {
-      nav('/checkout')
+    update({ selectedPlan: selected === 'basic' ? 'basic' : 'pro' })
+    if (hasBusiness === false) {
+      nav('/intake/business-name')
     } else {
-      nav('/entity-type')
+      nav('/intake/checkout')
     }
   }
 
+  const upsellDelta = savings.diwm.mid - savings.diy.mid
+
   return (
-    <div className="min-h-screen bg-[#F9FAFB] py-10 md:py-14 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Top */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+    <div className="min-h-screen bg-[#F9FAFB] py-10 md:py-16 px-4">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-[#F7941D]/10 border border-[#F7941D]/20 text-[#F7941D] text-xs font-bold px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             <Sparkles size={14} /> Matched to your business
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold font-heading text-gray-900 mb-3 leading-tight">
-            {hasBusiness === false
-              ? `Let's get your ${shortIndustry.toLowerCase()} business set up right.`
-              : `Your ${shortIndustry.toLowerCase()} plan in ${stateName}.`}
+            We work with thousands of {industryLabel.toLowerCase()} businesses in {stateName}.
           </h1>
-          <p className="text-gray-500 font-body text-sm md:text-base max-w-xl mx-auto">
-            Pick a plan. We work with thousands of {industryLabel.toLowerCase()} businesses{data.state ? ` in ${stateName}` : ''}.
+          <p className="text-gray-500 font-body text-base md:text-lg max-w-2xl mx-auto">
+            Pick the plan that's right for you. {hasBusiness === false && "We'll form your business as part of either plan — no extra cost."}
           </p>
         </motion.div>
 
+        {/* Savings highlight */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-[#10B981] to-[#0e9d6c] rounded-2xl p-5 md:p-6 text-white shadow-lg mb-8 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+            <TrendingUp size={22} />
+          </div>
+          <div>
+            <p className="text-[11px] uppercase tracking-wider font-bold text-white/80 mb-0.5">Your Estimated Tax Savings</p>
+            <p className="text-xl md:text-2xl font-extrabold font-heading leading-tight">
+              We can save you up to {fmt(savings.diwm.high)}/year in taxes.
+            </p>
+          </div>
+        </motion.div>
+
         {/* Plan cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <PlanCard
-            tier="basic"
-            name={`Basic ${titlePrefix}Plan`.replace(/\s+/g, ' ')}
-            blurb="Formation + bookkeeping + business taxes. Add S-Corp later."
-            annualPrice={228}
-            stateName={stateName}
-            stateFee={stateFee}
-            showStateFee={showStateFee}
-            features={features.basic}
-            selected={selectedPlan === 'basic'}
-            savings={savings.diy}
-            onSelect={() => setSelectedPlan('basic')}
-          />
-          <PlanCard
-            tier="pro"
-            name={`Pro ${titlePrefix}Plan`.replace(/\s+/g, ' ')}
-            blurb="Get the S-Corp election + a tax expert on call to maximize your savings."
-            annualPrice={348}
-            stateName={stateName}
-            stateFee={stateFee}
-            showStateFee={showStateFee}
-            features={features.pro}
-            selected={selectedPlan === 'pro'}
-            recommended
-            savings={savings.diwm}
-            onSelect={() => setSelectedPlan('pro')}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <PlanCard level="basic" hasBusiness={hasBusiness} industryId={data.industry}
+            savings={savings.diy} filingFee={filingFee} stateName={stateName}
+            selected={selected === 'basic'} onSelect={() => setSelected('basic')} />
+          <PlanCard level="pro" hasBusiness={hasBusiness} industryId={data.industry}
+            savings={savings.diwm} filingFee={filingFee} stateName={stateName}
+            selected={selected === 'pro'} onSelect={() => setSelected('pro')} />
         </div>
 
-        {/* "Leaving money on the table" warning when Basic selected */}
+        {/* Warning if Basic selected */}
         <AnimatePresence>
-          {selectedPlan === 'basic' && (
-            <motion.div
-              initial={{ opacity: 0, y: -8, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: 'auto' }}
-              exit={{ opacity: 0, y: -8, height: 0 }}
-              className="overflow-hidden mb-6">
-              <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 md:p-5 flex items-start gap-3">
-                <AlertTriangle size={20} className="text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold font-heading text-amber-900 mb-1 text-sm md:text-base">
-                    You're leaving up to {fmt(upsellDelta)} on the table.
-                  </p>
-                  <p className="text-xs md:text-sm text-amber-800 leading-relaxed">
-                    The S-Corp election alone saves the average client <strong>$4,000+/yr</strong> in self-employment tax. With the Pro plan, you also get on-demand access to a tax expert who can answer questions and meet with you whenever you need.
-                  </p>
-                </div>
+          {selected === 'basic' && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-5 mb-6 flex items-start gap-3">
+              <AlertTriangle size={20} className="text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-amber-900 mb-0.5">You're leaving up to {fmt(upsellDelta)} in tax savings on the table.</p>
+                <p className="text-sm text-amber-800 font-body leading-relaxed">
+                  The S-Corp election alone saves our average client over $4,000/year. Pro includes that — plus a tax expert you can chat with anytime.
+                </p>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Continue button */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-          <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
+        {/* Continue */}
+        <div className="text-center">
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             onClick={handleContinue}
-            className="w-full bg-[#F7941D] hover:bg-[#e07e0a] text-white font-semibold py-4 md:py-5 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2 text-base md:text-lg shadow-[0_4px_20px_rgba(247,148,29,0.35)]">
-            Continue with {selectedPlan === 'pro' ? 'Pro' : 'Basic'} {titlePrefix}Plan <ArrowRight size={18} />
+            className="bg-[#F7941D] hover:bg-[#e07e0a] text-white font-semibold py-4 px-10 md:px-16 rounded-full transition-all cursor-pointer text-lg inline-flex items-center gap-2 shadow-[0_4px_20px_rgba(247,148,29,0.4)]">
+            Continue with {selected === 'pro' ? 'Pro' : 'Basic'} <ChevronRight size={18} />
           </motion.button>
-        </motion.div>
-
-        <div className="mt-8 text-center">
-          <div className="flex flex-wrap justify-center items-center gap-3 md:gap-6 text-[11px] md:text-xs text-gray-400 font-body">
-            <div className="flex items-center gap-1.5">
-              <div className="flex text-[#F7941D]">{[...Array(5)].map((_, i) => <Star key={i} size={11} fill="currentColor" />)}</div>
-              <span>4.8/5 on Trustpilot</span>
-            </div>
-            <span className="hidden md:inline">·</span>
-            <span>50,000+ small businesses</span>
-            <span className="hidden md:inline">·</span>
-            <span>30-day money back</span>
-          </div>
+          <p className="text-xs text-gray-400 mt-3 font-body">30-day money-back guarantee · Cancel anytime</p>
         </div>
       </div>
     </div>
